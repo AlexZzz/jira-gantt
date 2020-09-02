@@ -4,31 +4,31 @@ import sys
 import requests
 from jira import JIRA
 
-
-def search(url,auth):
+def search(jira,label):
     start_at = 0
-    r = requests.get(url+"&startAt="+str(start_at),auth=auth)
-    res = r.json()
-    issues = res.get("issues")
-    while res.get("maxResults") < res.get("total")-start_at:
-        r = requests.get(url+"&startAt="+str(res.get("maxResults")+start_at))
-        issues += res.get("issues")
+    maxResults = 50
+    total = 100
+    issues = list()
+    while maxResults <= total-start_at:
+        res = jira.search_issues('labels='+label,maxResults=maxResults,startAt=start_at)
+        total = res.total
+        start_at += maxResults
+        issues += res
     return issues
+
 
 def parse_users(issues):
     res = {}
     for issue in issues:
-        assignee = issue.get("fields").get("assignee")
-        res[assignee.get("name")] = assignee.get("displayName")
+        assignee = issue.fields.assignee
+        res[assignee.name] = assignee.displayName
     return res
 
 def work(args):
     auth = args.credentials.split(":")
     options = {"server": "https://"+args.jira_url}
-    jira = JIRA(options)
-    api_url = "https://"+args.jira_url+"/rest/api/latest/"
-    search_issues_url = api_url+"search?jql=labels=\""+args.label+"\""
-    issues = search(search_issues_url,tuple(auth))
+    jira = JIRA(options,auth=tuple(auth))
+    issues = search(jira,args.label)
     users = parse_users(issues)
     print(users)
 
