@@ -44,7 +44,7 @@ def work(args):
                     if item.toString not in args.exclude_status:
                         issue_hist = dict()
                         issue_hist['Assignee'] = issue.fields.assignee.displayName
-                        issue_hist['Task'] = issue.key
+                        issue_hist['Task'] = issue.key+" "+issue.fields.summary
                         issue_hist['Status'] = item.toString
                         issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
                     if len(issue_full_hist) and issue_full_hist[-1].get('Status') == item.fromString:
