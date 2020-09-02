@@ -38,18 +38,17 @@ def work(args):
         for history in issue.changelog.histories:
             for item in history.items:
                 if item.field == "status": # "Backlog" "Analyze" "In Progress" "Testing" "Closed"
-                    if item.toString in args.exclude_status:
-                        continue
-                    issue_hist = dict()
                     date = datetime.strptime(history.created, "%Y-%m-%dT%H:%M:%S.%f%z")
-                    issue_hist['Assignee'] = issue.fields.assignee.displayName
-                    issue_hist['Task'] = issue.key
-                    issue_hist['Status'] = item.toString
-                    issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
-                    for issue_hist_saved in issue_full_hist:
-                        if issue_hist_saved.get("Status") == item.fromString:
-                            issue_hist_saved['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
-                    issue_full_hist.append(issue_hist)
+                    if item.toString not in args.exclude_status:
+                        issue_hist = dict()
+                        issue_hist['Assignee'] = issue.fields.assignee.displayName
+                        issue_hist['Task'] = issue.key
+                        issue_hist['Status'] = item.toString
+                        issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                        issue_full_hist.append(issue_hist)
+                    if len(issue_full_hist) > 1 and issue_full_hist[-2].get('Status') == item.fromString:
+                        issue_full_hist[-2]['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                        print("Setting {} with from={} now=".format(issue_full_hist[-2]['Task'],item.fromString,item.toString))
         histories_list += issue_full_hist
 
     for hist in histories_list:
@@ -60,6 +59,7 @@ def work(args):
     print(df)
     fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Status")
     fig.update_yaxes(autorange="reversed")
+    fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
     fig.show()
     users = parse_users(issues)
     print(users)
