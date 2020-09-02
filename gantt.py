@@ -9,14 +9,16 @@ from datetime import datetime,timezone,timedelta
 
 def search(jira,search_filter):
     start_at = 0
-    maxResults = 50
-    total = 100
+    maxResults = 200
+    total = 201
     issues = list()
+    print("Searching for issues...")
     while maxResults <= total-start_at:
         res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog")
         total = res.total
         start_at += maxResults
         issues += res
+        print("Searching for issues... {} got {} left".format(total,total-start_at))
     return issues
 
 
