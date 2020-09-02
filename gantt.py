@@ -45,15 +45,16 @@ def work(args):
                         issue_hist['Task'] = issue.key
                         issue_hist['Status'] = item.toString
                         issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                    if len(issue_full_hist) and issue_full_hist[-1].get('Status') == item.fromString:
+                        issue_full_hist[-1]['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                        print("Setting {} with from={} now={}".format(issue_full_hist[-1]['Task'],item.fromString,item.toString))
+                    if item.toString not in args.exclude_status:
                         issue_full_hist.append(issue_hist)
-                    if len(issue_full_hist) > 1 and issue_full_hist[-2].get('Status') == item.fromString:
-                        issue_full_hist[-2]['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
-                        print("Setting {} with from={} now=".format(issue_full_hist[-2]['Task'],item.fromString,item.toString))
         histories_list += issue_full_hist
 
     for hist in histories_list:
         if hist.get('Finish') == None:
-            hist['Finish'] = datetime.now().isoformat(' ',timespec='minutes') # TODO: Delete timezone everywhere
+            hist['Finish'] = datetime.now().isoformat(' ',timespec='minutes')
     print(histories_list)
     df = pd.DataFrame(histories_list)
     print(df)
