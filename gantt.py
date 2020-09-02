@@ -47,7 +47,7 @@ def work(args):
                     issue_hist['Status'] = item.toString
                     issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
                     for issue_hist_saved in issue_full_hist:
-                        if issue_hist_saved[-1] == item.fromString:
+                        if issue_hist_saved.get("Status") == item.fromString:
                             issue_hist_saved['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
                     issue_full_hist.append(issue_hist)
         histories_list += issue_full_hist
