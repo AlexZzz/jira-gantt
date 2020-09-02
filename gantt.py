@@ -57,6 +57,8 @@ def work(args):
             hist['Finish'] = datetime.now().isoformat(' ',timespec='minutes')
     print(histories_list)
     df = pd.DataFrame(histories_list)
+    df = df.sort_values('Assignee')
+    df = df.set_index('Assignee', append=True).swaplevel(0,1)
     print(df)
     fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Status")
     fig.update_yaxes(autorange="reversed")
