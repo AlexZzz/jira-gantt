@@ -10,7 +10,7 @@ def search(jira,label):
     total = 100
     issues = list()
     while maxResults <= total-start_at:
-        res = jira.search_issues('labels='+label,maxResults=maxResults,startAt=start_at)
+        res = jira.search_issues('labels='+label,maxResults=maxResults,startAt=start_at,expand="changelog")
         total = res.total
         start_at += maxResults
         issues += res
