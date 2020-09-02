@@ -7,13 +7,13 @@ import plotly.express as px
 import pandas as pd
 from datetime import datetime,timezone,timedelta
 
-def search(jira,label):
+def search(jira,search_filter):
     start_at = 0
     maxResults = 50
     total = 100
     issues = list()
     while maxResults <= total-start_at:
-        res = jira.search_issues('labels='+label,maxResults=maxResults,startAt=start_at,expand="changelog")
+        res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog")
         total = res.total
         start_at += maxResults
         issues += res
@@ -31,7 +31,7 @@ def work(args):
     auth = args.credentials.split(":")
     options = {"server": "https://"+args.jira_url}
     jira = JIRA(options,auth=tuple(auth))
-    issues = search(jira,args.label)
+    issues = search(jira,args.search_filter)
     histories_list = list()
     for issue in issues:
         issue_full_hist = list()
@@ -55,7 +55,6 @@ def work(args):
     for hist in histories_list:
         if hist.get('Finish') == None:
             hist['Finish'] = datetime.now().isoformat(' ',timespec='minutes')
-    print(histories_list)
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
     df = df.set_index('Assignee', append=True).swaplevel(0,1)
@@ -69,10 +68,10 @@ def work(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Plot Gantt by people for tasks by label")
-    parser.add_argument('--label','-l',type=str,help="Label name")
     parser.add_argument('--credentials','-c',type=str,help="Auth credentials in format username:password")
     parser.add_argument('--jira-url','-j',type=str,help="Jira URL")
     parser.add_argument('--exclude-status','-e',type=str,nargs='*',default=["Backlog","Closed"],help="Exclude tasks in this status")
+    parser.add_argument('--search-filter','-f',type=str,default="labels=\"CloudAdmins\"",help="Search filter expression")
     args = parser.parse_args()
     work(args)
 
