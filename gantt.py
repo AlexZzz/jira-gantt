@@ -7,6 +7,10 @@ import plotly.express as px
 import pandas as pd
 from datetime import datetime,timezone,timedelta
 
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import numpy as np
+
 def search(jira,search_filter):
     start_at = 0
     maxResults = 200
@@ -46,9 +50,9 @@ def work(args):
                         issue_hist['Assignee'] = issue.fields.assignee.displayName
                         issue_hist['Task'] = issue.key+" "+issue.fields.summary
                         issue_hist['Status'] = item.toString
-                        issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                        issue_hist['Start'] = pd.to_datetime(datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes'))
                     if len(issue_full_hist) and issue_full_hist[-1].get('Status') == item.fromString:
-                        issue_full_hist[-1]['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
+                        issue_full_hist[-1]['Finish'] = pd.to_datetime(datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes'))
                         print("Setting {} with from={} now={}".format(issue_full_hist[-1]['Task'],item.fromString,item.toString))
                     if item.toString not in args.exclude_status:
                         issue_full_hist.append(issue_hist)
@@ -56,12 +60,18 @@ def work(args):
 
     for hist in histories_list:
         if hist.get('Finish') == None:
-            hist['Finish'] = datetime.now().isoformat(' ',timespec='minutes')
+            hist['Finish'] = pd.to_datetime(datetime.now().isoformat(' ',timespec='minutes'))
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
-    print(df)
 
-    fig = px.timeline(df, facet_row="Assignee", x_start="Start", x_end="Finish", y="Task", color="Status")
+    fig = go.Figure()
+    # Here is a hack for https://github.com/plotly/plotly.js/issues/2391
+    # plotly.js converts date to ms since epoch and adds to the base
+    # So we count diff and pass it in 'x', it then is added to base
+    df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
+    print(df)
+    fig.add_trace(go.Bar(base=df['Start'],x=df['Diff'],y=[df['Assignee'],df['Task']],orientation='h'))
+
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
     fig.show()
