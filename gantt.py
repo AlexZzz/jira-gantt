@@ -38,6 +38,8 @@ def work(args):
         for history in issue.changelog.histories:
             for item in history.items:
                 if item.field == "status": # "Backlog" "Analyze" "In Progress" "Testing" "Closed"
+                    if item.toString in args.exclude_status:
+                        continue
                     issue_hist = dict()
                     date = datetime.strptime(history.created, "%Y-%m-%dT%H:%M:%S.%f%z")
                     issue_hist['Assignee'] = issue.fields.assignee.displayName
@@ -45,7 +47,7 @@ def work(args):
                     issue_hist['Status'] = item.toString
                     issue_hist['Start'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
                     for issue_hist_saved in issue_full_hist:
-                        if issue_hist_saved.get('Status') == item.fromString:
+                        if issue_hist_saved[-1] == item.fromString:
                             issue_hist_saved['Finish'] = datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes')
                     issue_full_hist.append(issue_hist)
         histories_list += issue_full_hist
@@ -67,6 +69,7 @@ def main():
     parser.add_argument('--label','-l',type=str,help="Label name")
     parser.add_argument('--credentials','-c',type=str,help="Auth credentials in format username:password")
     parser.add_argument('--jira-url','-j',type=str,help="Jira URL")
+    parser.add_argument('--exclude-status','-e',type=str,nargs='*',default=["Backlog","Closed"],help="Exclude tasks in this status")
     args = parser.parse_args()
     work(args)
 
