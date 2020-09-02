@@ -3,6 +3,8 @@ import argparse
 import sys
 import requests
 from jira import JIRA
+import plotly.express as px
+import pandas as pd
 
 def search(jira,label):
     start_at = 0
@@ -29,6 +31,12 @@ def work(args):
     options = {"server": "https://"+args.jira_url}
     jira = JIRA(options,auth=tuple(auth))
     issues = search(jira,args.label)
+    for issue in issues:
+        print(issue.key + " " + issue.fields.assignee.name)
+        for history in issue.changelog.histories:
+            for item in history.items:
+                if item.field == "status":
+                    print(history.created+": "+item.fromString+" => "+item.toString)
     users = parse_users(issues)
     print(users)
 
