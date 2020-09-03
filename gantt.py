@@ -117,15 +117,15 @@ def work(args):
                 name=status,
                 marker_line_width=marker_line_width,
                 marker_line_color=marker_line_color,
-                hovertext=
-                    '<br><b>{}</b><br>'.format(status) +
-                    '%{y}<br>'+
+                hovertemplate=
+                    '<i>Since: %{base}</i><br>'+
                     'Until: %{x}'
             ))
 
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
-    fig.update_layout(barmode='stack')
+    fig.update_layout(barmode='stack',
+            hovermode='y')
     fig.show()
     users = parse_users(issues)
     print(users)
