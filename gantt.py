@@ -79,11 +79,12 @@ def work(args):
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
 
-    for user in df['Username'].unique():
-        external_filter = 'issueFunction in commented("by {}")'.format(user)
-        if args.external_search_filter:
-            external_filter += " and "+args.external_search_filter
-        external_issues = search(jira,external_filter)
+    if args.search_external_issues:
+        for user in df['Username'].unique():
+            external_filter = 'issueFunction in commented("by {}")'.format(user)
+            if args.external_search_filter:
+                external_filter += " and "+args.external_search_filter
+            external_issues = search(jira,external_filter)
 
     fig = go.Figure()
     # Here is a hack for https://github.com/plotly/plotly.js/issues/2391
@@ -91,7 +92,7 @@ def work(args):
     # So we count diff and pass it in 'x', it then is added to base
     df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
     print(df)
-    colors = ['Green','Blue','Black','Red','Yellow','Brown','Orange','Violet','Salmon','Purple','Lightgreen','Cyan','Chocolate',]
+    colors = pc.sequential.haline
     for i, status in enumerate(df['Status'].unique()):
         df_plot = df[df['Status'] == status]
         bar_color = colors[i]
@@ -135,6 +136,7 @@ def main():
     parser.add_argument('--jira-url','-j',type=str,help="Jira URL")
     parser.add_argument('--exclude-status','-e',type=str,nargs='*',default=["Backlog","Closed"],help="Exclude tasks in this status")
     parser.add_argument('--search-filter','-f',type=str,default="labels=\"CloudAdmins\"",help="Search filter expression")
+    parser.add_argument('--search-external-issues','-v',action='store_true',help="Search all issues for commented by users we are dealing with")
     parser.add_argument('--external-search-filter','-s',type=str,default="updatedDate >= -1w",help="Extra filter for external search expression")
     args = parser.parse_args()
     work(args)
