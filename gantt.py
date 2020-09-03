@@ -10,6 +10,7 @@ from datetime import datetime,timezone,timedelta
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import numpy as np
+import plotly.colors as pc
 
 def search(jira,search_filter):
     start_at = 0
@@ -63,23 +64,32 @@ def work(args):
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
 
+    colors = dict()
+    for i, val in enumerate(df['Status'].unique()):
+        colors[val] = pc.sequential.Viridis[i]
+
     fig = go.Figure()
     # Here is a hack for https://github.com/plotly/plotly.js/issues/2391
     # plotly.js converts date to ms since epoch and adds to the base
     # So we count diff and pass it in 'x', it then is added to base
     df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
     print(df)
-    fig.add_trace(go.Bar(
-        base=df['Start'],
-        x=df['Diff'],
-        y=[df['Assignee'],
-            df['Task']
-        ],
-        orientation='h'
-    ))
+    colors = ['Pink','Green','Blue','Black','Red']
+    for i, status in enumerate(df['Status'].unique()):
+        df_plot = df[df['Status'] == status]
+        fig.add_trace(go.Bar(
+                base=df_plot['Start'],
+                x=df_plot['Diff'],
+                y=[df_plot['Assignee'],
+                    df_plot['Task']
+                ],
+                orientation='h',
+                marker_color=colors[i]
+            ))
 
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
+    fig.update_layout(barmode='stack')
     fig.show()
     users = parse_users(issues)
     print(users)
