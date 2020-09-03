@@ -47,6 +47,7 @@ def work(args):
             plan_start = datetime.strptime(issue.fields.customfield_10253, "%Y-%m-%d")
             plan_end = datetime.strptime(issue.fields.customfield_10254, "%Y-%m-%d")
             issue_plan['Assignee'] = issue.fields.assignee.displayName
+            issue_plan['Username'] = issue.fields.assignee.name
             issue_plan['Task'] = issue.key+" "+issue.fields.summary
             issue_plan['Status'] = 'Planned'
             issue_plan['Start'] = pd.to_datetime(datetime.combine(plan_start.date(), plan_start.time()).isoformat(' ',timespec='minutes'))
@@ -63,6 +64,7 @@ def work(args):
                         print("Setting {} with from={} now={}".format(issue_full_hist[-1]['Task'],item.fromString,item.toString))
                     if item.toString not in args.exclude_status:
                         issue_hist = dict()
+                        issue_hist['Username'] = issue.fields.assignee.name
                         issue_hist['Assignee'] = issue.fields.assignee.displayName
                         issue_hist['Task'] = issue.key+" "+issue.fields.summary
                         issue_hist['Status'] = item.toString
@@ -73,8 +75,15 @@ def work(args):
     for hist in histories_list:
         if hist.get('Finish') == None:
             hist['Finish'] = pd.to_datetime(datetime.now().isoformat(' ',timespec='minutes'))
+
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
+
+    for user in df['Username'].unique():
+        external_filter = 'issueFunction in commented("by {}")'.format(user)
+        if args.external_search_filter:
+            external_filter += " and "+args.external_search_filter
+        external_issues = search(jira,external_filter)
 
     fig = go.Figure()
     # Here is a hack for https://github.com/plotly/plotly.js/issues/2391
@@ -126,6 +135,7 @@ def main():
     parser.add_argument('--jira-url','-j',type=str,help="Jira URL")
     parser.add_argument('--exclude-status','-e',type=str,nargs='*',default=["Backlog","Closed"],help="Exclude tasks in this status")
     parser.add_argument('--search-filter','-f',type=str,default="labels=\"CloudAdmins\"",help="Search filter expression")
+    parser.add_argument('--external-search-filter','-s',type=str,default="updatedDate >= -1w",help="Extra filter for external search expression")
     args = parser.parse_args()
     work(args)
 
