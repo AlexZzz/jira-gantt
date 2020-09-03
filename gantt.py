@@ -84,7 +84,12 @@ def work(args):
                     df_plot['Task']
                 ],
                 orientation='h',
-                marker_color=colors[i]
+                marker_color=colors[i],
+                name=status,
+                hovertemplate=
+                    '<br><b>{}</b><br>'.format(status) +
+                    '%{y}<br>'+
+                    'Until: %{x}'
             ))
 
     fig.update_yaxes(autorange="reversed")
