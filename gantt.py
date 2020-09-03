@@ -69,7 +69,14 @@ def work(args):
     # So we count diff and pass it in 'x', it then is added to base
     df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
     print(df)
-    fig.add_trace(go.Bar(base=df['Start'],x=df['Diff'],y=[df['Assignee'],df['Task']],orientation='h'))
+    fig.add_trace(go.Bar(
+        base=df['Start'],
+        x=df['Diff'],
+        y=[df['Assignee'],
+            df['Task']
+        ],
+        orientation='h'
+    ))
 
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
