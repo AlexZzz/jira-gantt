@@ -19,7 +19,7 @@ def search(jira,search_filter):
     issues = list()
     print("Searching for issues...")
     while maxResults <= total-start_at:
-        res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog,names")
+        res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog")
         total = res.total
         start_at += maxResults
         issues += res
@@ -42,20 +42,17 @@ def work(args):
     histories_list = list()
     for issue in issues:
         issue_full_hist = list()
-        custom_fields = dict()
-
-        for field,name in issue.names:
-            if name == "Planned Start":
-                custom_fields[name] = field
-            if name == "Planned End":
-                custom_fields[name] = field
         issue_plan = dict()
-        issue_plan['Assignee'] = issue.fields.assignee.displayName
-        issue_plan['Task'] = issue.key+" "+issue.fields.summary
-        issue_plan['Status'] = 'Planned'
-        issue_plan['Start'] = pd.to_datetime(issue.field[custom_field['Planned Start']])
-        issue_plan['Finish'] = pd.to_datetime(issue.field[custom_field['Planned End']])
-        histories_list += issue_plan
+        if issue.fields.customfield_10253 and issue.fields.customfield_10254:
+            plan_start = datetime.strptime(issue.fields.customfield_10253, "%Y-%m-%d")
+            plan_end = datetime.strptime(issue.fields.customfield_10254, "%Y-%m-%d")
+            issue_plan['Assignee'] = issue.fields.assignee.displayName
+            issue_plan['Task'] = issue.key+" "+issue.fields.summary
+            issue_plan['Status'] = 'Planned'
+            issue_plan['Start'] = pd.to_datetime(datetime.combine(plan_start.date(), plan_start.time()).isoformat(' ',timespec='minutes'))
+            issue_plan['Finish'] = pd.to_datetime(datetime.combine(plan_end.date(), plan_end.time()).isoformat(' ',timespec='minutes'))
+            print(issue_plan)
+            issue_full_hist.append(issue_plan)
 
         for history in issue.changelog.histories:
             for item in history.items:
@@ -79,19 +76,25 @@ def work(args):
     df = pd.DataFrame(histories_list)
     df = df.sort_values('Assignee')
 
-    colors = dict()
-    for i, val in enumerate(df['Status'].unique()):
-        colors[val] = pc.sequential.Viridis[i]
-
     fig = go.Figure()
     # Here is a hack for https://github.com/plotly/plotly.js/issues/2391
     # plotly.js converts date to ms since epoch and adds to the base
     # So we count diff and pass it in 'x', it then is added to base
     df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
     print(df)
-    colors = ['Pink','Green','Blue','Black','Red']
+    colors = ['Green','Blue','Black','Red','Yellow','Brown','Orange','Violet','Salmon','Purple','Lightgreen','Cyan','Chocolate',]
     for i, status in enumerate(df['Status'].unique()):
         df_plot = df[df['Status'] == status]
+        bar_color = colors[i]
+        marker_line_width = 0
+        opacity = 1
+        marker_line_color=None
+
+        if status == 'Planned':
+            opacity = 0.2
+            marker_line_width = 2
+            marker_line_color = 'Black'
+
         fig.add_trace(go.Bar(
                 base=df_plot['Start'],
                 x=df_plot['Diff'],
@@ -99,8 +102,11 @@ def work(args):
                     df_plot['Task']
                 ],
                 orientation='h',
-                marker_color=colors[i],
+                marker_color=bar_color,
+                opacity=opacity,
                 name=status,
+                marker_line_width=marker_line_width,
+                marker_line_color=marker_line_color,
                 hovertext=
                     '<br><b>{}</b><br>'.format(status) +
                     '%{y}<br>'+
