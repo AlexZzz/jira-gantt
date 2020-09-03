@@ -45,16 +45,15 @@ def work(args):
             for item in history.items:
                 if item.field == "status": # "Backlog" "Analyze" "In Progress" "Testing" "Closed"
                     date = datetime.strptime(history.created, "%Y-%m-%dT%H:%M:%S.%f%z")
+                    if len(issue_full_hist) and issue_full_hist[-1].get('Status') == item.fromString:
+                        issue_full_hist[-1]['Finish'] = pd.to_datetime(datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes'))
+                        print("Setting {} with from={} now={}".format(issue_full_hist[-1]['Task'],item.fromString,item.toString))
                     if item.toString not in args.exclude_status:
                         issue_hist = dict()
                         issue_hist['Assignee'] = issue.fields.assignee.displayName
                         issue_hist['Task'] = issue.key+" "+issue.fields.summary
                         issue_hist['Status'] = item.toString
                         issue_hist['Start'] = pd.to_datetime(datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes'))
-                    if len(issue_full_hist) and issue_full_hist[-1].get('Status') == item.fromString:
-                        issue_full_hist[-1]['Finish'] = pd.to_datetime(datetime.combine(date.date(), date.time()).isoformat(' ',timespec='minutes'))
-                        print("Setting {} with from={} now={}".format(issue_full_hist[-1]['Task'],item.fromString,item.toString))
-                    if item.toString not in args.exclude_status:
                         issue_full_hist.append(issue_hist)
         histories_list += issue_full_hist
 
