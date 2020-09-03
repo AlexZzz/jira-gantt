@@ -19,7 +19,7 @@ def search(jira,search_filter):
     issues = list()
     print("Searching for issues...")
     while maxResults <= total-start_at:
-        res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog")
+        res = jira.search_issues(search_filter,maxResults=maxResults,startAt=start_at,expand="changelog,names")
         total = res.total
         start_at += maxResults
         issues += res
@@ -42,6 +42,21 @@ def work(args):
     histories_list = list()
     for issue in issues:
         issue_full_hist = list()
+        custom_fields = dict()
+
+        for field,name in issue.names:
+            if name == "Planned Start":
+                custom_fields[name] = field
+            if name == "Planned End":
+                custom_fields[name] = field
+        issue_plan = dict()
+        issue_plan['Assignee'] = issue.fields.assignee.displayName
+        issue_plan['Task'] = issue.key+" "+issue.fields.summary
+        issue_plan['Status'] = 'Planned'
+        issue_plan['Start'] = pd.to_datetime(issue.field[custom_field['Planned Start']])
+        issue_plan['Finish'] = pd.to_datetime(issue.field[custom_field['Planned End']])
+        histories_list += issue_plan
+
         for history in issue.changelog.histories:
             for item in history.items:
                 if item.field == "status": # "Backlog" "Analyze" "In Progress" "Testing" "Closed"
@@ -86,7 +101,7 @@ def work(args):
                 orientation='h',
                 marker_color=colors[i],
                 name=status,
-                hovertemplate=
+                hovertext=
                     '<br><b>{}</b><br>'.format(status) +
                     '%{y}<br>'+
                     'Until: %{x}'
