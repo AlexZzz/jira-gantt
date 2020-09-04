@@ -98,12 +98,14 @@ def work(args):
         bar_color = colors[i]
         marker_line_width = 0
         opacity = 1
-        marker_line_color=None
+        marker_line_color = None
+        width = None
 
         if status == 'Planned':
             opacity = 0.2
             marker_line_width = 2
             marker_line_color = 'Black'
+            width = 1
 
         fig.add_trace(go.Bar(
                 base=df_plot['Start'],
@@ -117,6 +119,7 @@ def work(args):
                 name=status,
                 marker_line_width=marker_line_width,
                 marker_line_color=marker_line_color,
+                width=width,
                 hovertemplate=
                     '<i>Since: %{base}</i><br>'+
                     'Until: %{x}'
