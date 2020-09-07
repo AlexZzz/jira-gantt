@@ -93,9 +93,13 @@ def work(args):
     df['Diff'] = pd.to_datetime((df['Finish'].astype(int) - df['Start'].astype(int)))
     print(df)
     colors = pc.sequential.haline
+    colors_extra = pc.sequential.solar
     for i, status in enumerate(df['Status'].unique()):
         df_plot = df[df['Status'] == status]
-        bar_color = colors[i]
+        if len(colors) > i:
+            bar_color = colors[i]
+        else:
+            bar_color = colors_extra[i-len(colors)]
         marker_line_width = 0
         opacity = 1
         marker_line_color = None
