@@ -124,11 +124,28 @@ def work(args):
                     '<i>Since: %{base}</i><br>'+
                     'Until: %{x}'
             ))
+    today = datetime.today()
+    tomorrow = datetime.today() + timedelta(days=1)
 
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
     fig.update_layout(barmode='stack',
-            hovermode='y')
+            hovermode='y',
+            shapes=[
+                dict(
+                    type="rect",
+                    x0=today.date(),
+                    x1=tomorrow.date(),
+                    opacity=0.5,
+                    fillcolor="LightSalmon",
+                    layer="below",
+                    line_width=0,
+                    y0=0,
+                    y1=1,
+                    yref="paper",
+                    )
+                ]
+            )
     fig.show()
     users = parse_users(issues)
     print(users)
