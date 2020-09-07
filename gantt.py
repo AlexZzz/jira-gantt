@@ -126,6 +126,8 @@ def work(args):
             ))
     today = datetime.today()
     tomorrow = datetime.today() + timedelta(days=1)
+    this_month = today.replace(day=1)
+    next_month = (datetime.today() + timedelta(days=32)).replace(day=1)
 
     fig.update_yaxes(autorange="reversed")
     fig.update_xaxes(showgrid=True,gridwidth=1,gridcolor='Black')
@@ -143,7 +145,19 @@ def work(args):
                     y0=0,
                     y1=1,
                     yref="paper",
-                    )
+                    ),
+                dict(
+                    type="rect",
+                    x0=this_month.date(),
+                    x1=next_month.date(),
+                    opacity=0.3,
+                    fillcolor="LightYellow",
+                    layer="below",
+                    line_width=1,
+                    y0=0,
+                    y1=1,
+                    yref="paper",
+                    ),
                 ]
             )
     fig.show()
