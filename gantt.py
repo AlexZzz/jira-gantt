@@ -173,7 +173,7 @@ def main():
     parser.add_argument('--credentials','-c',type=str,help="Auth credentials in format username:password")
     parser.add_argument('--jira-url','-j',type=str,help="Jira URL")
     parser.add_argument('--exclude-status','-e',type=str,nargs='*',default=["Backlog","Closed"],help="Exclude tasks in this status")
-    parser.add_argument('--search-filter','-f',type=str,default="labels=\"CloudAdmins\"",help="Search filter expression")
+    parser.add_argument('--search-filter','-f',type=str,default="",help="Search filter expression")
     parser.add_argument('--search-external-issues','-v',action='store_true',help="Search all issues for commented by users we are dealing with")
     parser.add_argument('--external-search-filter','-s',type=str,default="updatedDate >= -1w",help="Extra filter for external search expression")
     args = parser.parse_args()
